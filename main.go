@@ -109,6 +109,14 @@ func buildMux(srv *Service) http.Handler {
 			writeError(w, badRequest("'keys' must not be empty"))
 			return
 		}
+		// Mirror GET /owner: every key must be non-blank after trimming, or the
+		// whole request is rejected with 400.
+		for _, k := range req.Keys {
+			if strings.TrimSpace(k) == "" {
+				writeError(w, badRequest("'keys' must not contain empty or blank values"))
+				return
+			}
+		}
 		owners, err := srv.Owners(req.Keys)
 		if err != nil {
 			writeError(w, err)
